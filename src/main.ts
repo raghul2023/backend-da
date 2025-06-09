@@ -4,19 +4,21 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
+import { Request, Response, NextFunction } from 'express';
 
-// Create a singleton instance
-let cachedApp: any;
+// Create a singleton instance with proper type
+let cachedApp: express.Application;
 
 async function bootstrap() {
   if (cachedApp) {
     return cachedApp;
   }
 
+  // Create Express app
   const expressApp = express();
   const logger = new Logger('Bootstrap');
   
-  // Create the app with specific options for serverless
+  // Create NestJS application
   const app = await NestFactory.create(
     AppModule,
     new ExpressAdapter(expressApp),
@@ -64,16 +66,32 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
+  // Initialize the application
   await app.init();
   
+  // Cache the Express app instance
   cachedApp = expressApp;
   return expressApp;
 }
 
 // Export the serverless function as default
-export default async function handler(req, res) {
-  const app = await bootstrap();
-  return app(req, res);
+export default async function handler(req: Request, res: Response) {
+  try {
+    const app = await bootstrap();
+    // Use the Express app as middleware with correct error handler type
+    return new Promise((resolve, reject) => {
+      app(req, res, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error in handler:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 }
 
 // For local development only
