@@ -5,20 +5,27 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(
-      'mongodb+srv://midhun111:midhun1234@da-products.h4jslgl.mongodb.net/',
-    ),
-    CacheModule.register({
-      // Using in-memory cache by default
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
+    CacheModule.registerAsync({
       isGlobal: true,
-      ttl: 60, // default TTL in seconds
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        ttl: configService.get<number>('CACHE_TTL', 60),
+      }),
+      inject: [ConfigService],
     }),
     ProductsModule,
     CategoriesModule,
