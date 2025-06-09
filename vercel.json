@@ -6,7 +6,9 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": ["dist/**"],
-        "maxLambdaSize": "15mb"
+        "maxLambdaSize": "15mb",
+        "memory": 1024,
+        "maxDuration": 10
       }
     }
   ],
@@ -34,11 +36,5 @@
     "NODE_ENV": "production",
     "PORT": "3000",
     "CACHE_TTL": "300"
-  },
-  "functions": {
-    "src/main.ts": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
   }
 } 
