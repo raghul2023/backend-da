@@ -70,13 +70,13 @@ async function bootstrap() {
   return expressApp;
 }
 
-// Export the handler for Vercel
-export const handler = async (req, res) => {
+// Export the serverless function as default
+export default async function handler(req, res) {
   const app = await bootstrap();
   return app(req, res);
-};
+}
 
-// For local development
+// For local development only
 if (process.env.NODE_ENV !== 'production') {
   bootstrap().then(app => {
     const port = process.env.PORT || 3000;
