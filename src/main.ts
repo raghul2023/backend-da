@@ -58,21 +58,19 @@ async function bootstrap() {
     app.getHttpAdapter().getInstance().set('trust proxy', 1);
   }
 
-  const port = process.env.PORT || 3000;
-  
   // For Vercel serverless, we don't need to listen on a port
-  if (process.env.NODE_ENV === 'production') {
-    await app.init();
-    return app;
-  } else {
-    await app.listen(port);
-    logger.log(`Application is running on: ${await app.getUrl()}`);
-    if (process.env.NODE_ENV !== 'production') {
-      logger.log(`Swagger documentation is available at: ${await app.getUrl()}/api/docs`);
-    }
-    return app;
-  }
+  await app.init();
+
+  // Return the app instance for serverless
+  return app;
 }
 
-// For Vercel serverless functions
+// Export the bootstrap function for serverless
 export default bootstrap();
+
+// Export the handler for Vercel
+export const handler = async (req, res) => {
+  const app = await bootstrap();
+  const instance = app.getHttpAdapter().getInstance();
+  return instance(req, res);
+};
