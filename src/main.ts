@@ -2,22 +2,36 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import * as express from 'express';
+
+// Create a singleton instance
+let cachedApp: any;
 
 async function bootstrap() {
+  if (cachedApp) {
+    return cachedApp;
+  }
+
+  const expressApp = express();
   const logger = new Logger('Bootstrap');
   
   // Create the app with specific options for serverless
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn'], // Reduce logging in production
-    bodyParser: true,
-    cors: {
-      origin: process.env.FRONTEND_URL || '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
-    },
-  });
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(expressApp),
+    {
+      logger: ['error', 'warn'],
+      bodyParser: true,
+      cors: {
+        origin: process.env.FRONTEND_URL || '*',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        credentials: true,
+      },
+    }
+  );
 
-  // Enable validation pipes with optimized settings
+  // Enable validation pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,7 +40,6 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      // Add validation timeout
       validateCustomDecorators: true,
       dismissDefaultMessages: false,
       validationError: {
@@ -51,26 +64,24 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  // Optimize for serverless
-  if (process.env.NODE_ENV === 'production') {
-    // Disable unnecessary features in production
-    app.enableShutdownHooks();
-    app.getHttpAdapter().getInstance().set('trust proxy', 1);
-  }
-
-  // For Vercel serverless, we don't need to listen on a port
   await app.init();
-
-  // Return the app instance for serverless
-  return app;
+  
+  cachedApp = expressApp;
+  return expressApp;
 }
-
-// Export the bootstrap function for serverless
-export default bootstrap();
 
 // Export the handler for Vercel
 export const handler = async (req, res) => {
   const app = await bootstrap();
-  const instance = app.getHttpAdapter().getInstance();
-  return instance(req, res);
+  return app(req, res);
 };
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  bootstrap().then(app => {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Application is running on: http://localhost:${port}`);
+    });
+  });
+}
