@@ -30,20 +30,7 @@ async function bootstrap(): Promise<Application> {
     AppModule,
     new ExpressAdapter(expressApp),
     {
-      cors: {
-        // Allow all origins
-        origin: '*',
-        // Allowed HTTP methods
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        // Allowed headers
-        allowedHeaders: 'Content-Type,Accept,Authorization',
-        // Allow credentials
-        credentials: true,
-        // Max age of the CORS preflight request
-        maxAge: 3600,
-        // Expose headers
-        exposedHeaders: 'Content-Range,X-Content-Range',
-      },
+     
       // Configure logger to show only errors and warnings
       logger: ['error', 'warn'],
       // Body parser is enabled by default, but explicit is fine
@@ -53,7 +40,7 @@ async function bootstrap(): Promise<Application> {
 
   // Enable CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
