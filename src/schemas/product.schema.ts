@@ -65,6 +65,9 @@ export class Product {
 
   @Prop([String])
   tags?: string[];
+
+  @Prop({ required: true, min: 1 })
+  moq: number; // Minimum Order Quantity
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

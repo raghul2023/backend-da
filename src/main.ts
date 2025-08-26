@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
 // Correctly import the default export 'express' and named types
@@ -45,23 +45,36 @@ async function bootstrap(): Promise<Application> {
     credentials: true,
   });
 
-  // Enable global validation pipes for request DTOs
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-      validateCustomDecorators: true,
-      dismissDefaultMessages: false,
-      validationError: {
-        target: false,
-        value: false,
-      },
-    }),
-  );
+  // Temporarily disable ValidationPipe for debugging
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true, // Only allow properties that exist in DTO
+  //     forbidNonWhitelisted: false, // Don't reject extra properties, just ignore them
+  //     transform: true, // Transform incoming data to DTO instances
+  //     transformOptions: {
+  //       enableImplicitConversion: true,
+  //     },
+  //     validateCustomDecorators: true,
+  //     dismissDefaultMessages: false,
+  //     skipMissingProperties: false,
+  //     validationError: {
+  //       target: false,
+  //       value: false,
+  //     },
+  //     // Add detailed error information for debugging
+  //     exceptionFactory: (errors) => {
+  //       console.log('Validation errors:', JSON.stringify(errors, null, 2));
+  //       return new HttpException({
+  //         message: 'Validation failed',
+  //         errors: errors.map(error => ({
+  //           property: error.property,
+  //           value: error.value,
+  //           constraints: error.constraints
+  //         }))
+  //       }, HttpStatus.BAD_REQUEST);
+  //     },
+  //   }),
+  // );
 
   // Set a global prefix for all routes (e.g., /api)
   app.setGlobalPrefix('api');
