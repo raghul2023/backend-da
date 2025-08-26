@@ -43,7 +43,7 @@ export class ProductsService {
     try {
       const products = await this.productModel.find().exec();
       return products.map(product => this.transformToDto(product));
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException('Failed to fetch products');
     }
   }
@@ -59,9 +59,9 @@ export class ProductsService {
         throw new NotFoundException(`Product with ID "${id}" not found`);
       }
       return this.transformToDto(product);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+    } catch (_error) {
+      if (_error instanceof NotFoundException) {
+        throw _error;
       }
       throw new InternalServerErrorException('Failed to fetch product');
     }
@@ -82,9 +82,9 @@ export class ProductsService {
         throw new NotFoundException(`Product with MongoDB ID "${mongoId}" not found`);
       }
       return this.transformToDto(product);
-    } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
+    } catch (_error) {
+      if (_error instanceof NotFoundException || _error instanceof BadRequestException) {
+        throw _error;
       }
       throw new InternalServerErrorException('Failed to fetch product');
     }
@@ -103,9 +103,9 @@ export class ProductsService {
         throw new NotFoundException(`Product with title "${title}" not found`);
       }
       return this.transformToDto(product);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+    } catch (_error) {
+      if (_error instanceof NotFoundException) {
+        throw _error;
       }
       throw new InternalServerErrorException('Failed to fetch product');
     }
@@ -234,9 +234,9 @@ export class ProductsService {
       }
 
       return this.transformToDto(updatedProduct);
-    } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ConflictException) {
-        throw error;
+    } catch (_error) {
+      if (_error instanceof NotFoundException || _error instanceof BadRequestException || _error instanceof ConflictException) {
+        throw _error;
       }
       throw new InternalServerErrorException('Failed to update product');
     }
@@ -268,9 +268,9 @@ export class ProductsService {
       }
 
       await this.productModel.findByIdAndDelete(mongoId).exec();
-    } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
+    } catch (_error) {
+      if (_error instanceof NotFoundException || _error instanceof BadRequestException) {
+        throw _error;
       }
       throw new InternalServerErrorException('Failed to delete product');
     }
@@ -286,7 +286,7 @@ export class ProductsService {
         .find({ category: { $regex: new RegExp(`^${categoryName}$`, 'i') } })
         .exec();
       return products.map(product => this.transformToDto(product));
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException('Failed to fetch products by category');
     }
   }

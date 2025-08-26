@@ -182,8 +182,8 @@ export class CategoriesService {
         throw new NotFoundException(`Category with ID "${id}" not found`);
       }
       return updatedCategory;
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (_error) {
+      if (_error.code === 11000) {
         throw new ConflictException(
           `Category "${updateCategoryDto.name}" already exists.`,
         );
@@ -211,7 +211,7 @@ export class CategoriesService {
 
     try {
       await this.categoryModel.findByIdAndDelete(id).exec();
-    } catch (error) {
+    } catch (_error) {
       throw new InternalServerErrorException('Error deleting category.');
     }
   }
